@@ -1,9 +1,17 @@
+using System.Net;
+using MongoDB.Driver;
+using MongoDB.Entities;using Polly;
+using Polly.Extensions.Http;
+using SearchService.Data;
+using SearchService.Models;
+using SearchService.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-
+builder.Services.AddHttpClient<AuctionSvcHttpClient>().AddPolicyHandler(GetPolicy());
 
 var app = builder.Build();
 
@@ -11,5 +19,23 @@ var app = builder.Build();
 app.UseAuthorization();
 
 app.MapControllers();
+app.Lifetime.ApplicationStarted.Register(async () =>
+{
+    try
+    {
+        await DbInitializer.InitDb(app);
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine(e);
+
+    }
+});
 
 app.Run();
+//geçici hatalar veya 404 dönenler için her 3 saniyede tekrar dene istek(request) başarılı olana kadar
+static IAsyncPolicy<HttpResponseMessage> GetPolicy()
+=>HttpPolicyExtensions
+    .HandleTransientHttpError() //geçici hatalar için
+    .OrResult(msg=>msg.StatusCode==HttpStatusCode.NotFound)
+    .WaitAndRetryForeverAsync(_=>TimeSpan.FromSeconds(3));

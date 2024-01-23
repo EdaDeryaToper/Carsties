@@ -2,6 +2,7 @@ using AuctionService.Data;
 using AuctionService.DTOs;
 using AuctionService.Entities;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,10 +24,20 @@ namespace AuctionService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<AuctionDto>>> GetAllActions()
+        public async Task<ActionResult<List<AuctionDto>>> GetAllActions(string date)
         {
-            var auctions = await _context.Auctions.Include(x=>x.Item).OrderBy(x=>x.Item.Make).ToListAsync();
-            return _mapper.Map<List<AuctionDto>>(auctions);
+            //OrderBy zaten IQuerable türünde dönmesini sağlar aslında bu yüzden AsQuerable() demeye gerek yok. Ama yine de yazdık
+            var query = _context.Auctions.OrderBy(x => x.Item.Make).AsQueryable();
+            if (!string.IsNullOrEmpty(date))
+            {
+                query = query.Where(x => x.UpdatedAt.CompareTo(DateTime.Parse(date).ToUniversalTime()) > 0);
+            }
+            /*var auctions = await _context.Auctions
+                .Include(x=>x.Item)
+                .OrderBy(x=>x.Item.Make)
+                .ToListAsync();
+            return _mapper.Map<List<AuctionDto>>(auctions);*/
+            return await query.ProjectTo<AuctionDto>(_mapper.ConfigurationProvider).ToListAsync();
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<AuctionDto>> GetAuctionById(Guid id){
