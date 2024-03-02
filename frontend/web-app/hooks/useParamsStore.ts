@@ -26,7 +26,7 @@ const initialState: State={
     filterBy:'live'
 }
 
-export const useParamsStore = create<State & Actions>()((set)=>({
+export const useParamsStore = create<State & Actions>()((set) => ({
     ...initialState,
     setParams: (newParams: Partial<State>)=>{
         set((state)=>{
