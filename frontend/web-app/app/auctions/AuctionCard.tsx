@@ -3,6 +3,7 @@ import React from 'react'
 import CountdownTimer from './CountdownTimer'
 import CarImage from './CarImage'
 import { Auction } from '@/types'
+import Link from 'next/link'
 
 type Props={
     auction:Auction
@@ -10,7 +11,7 @@ type Props={
 // AuctionCard bileşeni, aldığı Listingste aldığı auction nesnesinin "make" özelliğini ekrana basar.
 export default function AuctionCard({auction}:Props) {
   return (
-    <a href='#' className='group'>
+    <Link href={`/auctions/details/${auction.id}`} className='group'>
         <div className='w-full bg-gray-200 aspect-w-16 aspect-h-10 rounded-lg overflow-hidden'>
             <div>
            <CarImage imageUrl={auction.imageUrl}/>
@@ -27,7 +28,7 @@ export default function AuctionCard({auction}:Props) {
         </div>
         
 
-    </a>
+    </Link>
    //<div>{auction.make}</div>
   )
 }
